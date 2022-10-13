@@ -188,7 +188,7 @@ async function playerembed(name) {
     } else {
       embed.addFields({
         name: `Colony #${index}`,
-        value: `${planet.x}, ${planet.y} ${sdead} (${prettyMilliseconds(planet.reload - Date.now())})`,
+        value: `${planet.x}, ${planet.y} ${sdead}`,
       })
     }
   }
@@ -259,7 +259,7 @@ client.on('interactionCreate', async interaction => {
     let sdead = '(ALIVE)'
     let reload = 0
     if (dead === true) {
-      dead = '(DEAD)'
+      sdead = '(DEAD)'
       reload = Date.now() + regentime
     }
     try {
