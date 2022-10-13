@@ -183,7 +183,7 @@ async function playerembed(name) {
     } else {
       embed.addFields({
         name: `Colony #${index}`,
-        value: `${planet.x}, ${planet.y} ${sdead}`,
+        value: `${planet.x}, ${planet.y} ${sdead} (${prettyMilliseconds(planet.reload - Date.now())})`,
       })
     }
   }
