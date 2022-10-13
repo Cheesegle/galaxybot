@@ -17,8 +17,8 @@ import prettyMilliseconds from 'pretty-ms'
 
 let TOKEN = process.env['token']
 let CLIENT_ID = '850950666020061234'
-let channelId = '1030121767009796180'
-let roleId = '1030184453525491752'
+let channelId = '1015199101194870884'
+let roleId = '1030193259009544333'
 let regentime = 1.44e+7
 
 //(4 hours) 1.44e+7 
@@ -141,21 +141,19 @@ client.on('ready', () => {
       for (let name in data) {
         let entry = data[name]
         for (let [index, planet] of entry.planets.entries()) {
-          if (!planet.deleted) {
-            if (planet.reload <= Date.now() && planet.reload !== 0) {
-              entry.planets[index] = {
-                x: planet.x,
-                y: planet.y,
-                dead: false,
-                reload: 0
-              }
-              db.push(`/players/${name}`, entry)
-              let channel = await client.channels.fetch(channelId)
-              channel.send('<@&' + roleId + '> Planet regenerated!');
-              channel.send({
-                embeds: [await playerembed(name)]
-              });
+          if (planet.reload <= Date.now() && planet.reload !== 0) {
+            entry.planets[index] = {
+              x: planet.x,
+              y: planet.y,
+              dead: false,
+              reload: 0
             }
+            db.push(`/players/${name}`, entry)
+            let channel = await client.channels.fetch(channelId)
+            channel.send('<@&' + roleId + '> Planet regenerated!');
+            channel.send({
+              embeds: [await playerembed(name)]
+            });
           }
         }
       }
@@ -172,23 +170,21 @@ async function playerembed(name) {
   let deadc = 0
   let deadcolor = false
   for (let [index, planet] of entry.planets.entries()) {
-    if (!planet.deleted) {
-      let sdead = '(ALIVE)'
-      if (planet.dead === true) {
-        deadc++
-        sdead = `(DEAD) (${prettyMilliseconds(planet.reload - Date.now())})`
-      }
-      if (index === 0) {
-        embed.addFields({
-          name: `Main #0`,
-          value: `${sdead}`
-        })
-      } else {
-        embed.addFields({
-          name: `Colony #${index}`,
-          value: `${planet.x}, ${planet.y} ${sdead}`,
-        })
-      }
+    let sdead = '(ALIVE)'
+    if (planet.dead === true) {
+      deadc++
+      sdead = `(DEAD) (${prettyMilliseconds(planet.reload - Date.now())})`
+    }
+    if (index === 0) {
+      embed.addFields({
+        name: `Main #0`,
+        value: `${sdead}`
+      })
+    } else {
+      embed.addFields({
+        name: `Colony #${index}`,
+        value: `${planet.x}, ${planet.y} ${sdead}`,
+      })
     }
   }
   if (deadc === entry.planets.length) {
@@ -203,6 +199,7 @@ async function playerembed(name) {
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return
+  if (interaction.channel.id !== '1015199101194870884') return
 
   if (interaction.commandName === 'all') {
     try {
@@ -312,11 +309,9 @@ client.on('interactionCreate', async interaction => {
       try {
         let data = await db.getData(`/players/${name}`)
         if (data.planets[planet]) {
-          data.planets[planet] = {
-            deleted: true
-          }
+          data.planets.splice(planet, 1)
           db.push(`/players/${name}`, data)
-          await interaction.reply('Deleted planet!')
+          await interaction.reply('Removed planet!')
           await interaction.followUp({
             embeds: [await playerembed(name)]
           })
