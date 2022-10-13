@@ -3,23 +3,6 @@ const { REST, Routes, Client, GatewayIntentBits, EmbedBuilder } = require('disco
 const { JsonDB, Config } = require('node-json-db');
 var db = new JsonDB(new Config("galaxy", true, false, '/'));
 
-db.push(`/players/${'3Cheese'}`, {
-  planets: [
-    {
-      x: 200,
-      y: 200
-    },
-    {
-      x: 678,
-      y: 343
-    },
-    {
-      x: 234,
-      y: 635
-    }],
-  dead: false
-});
-
 let TOKEN = process.env['token'];
 let CLIENT_ID = '850950666020061234';
 
