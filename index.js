@@ -41,7 +41,8 @@ const commandcolony = new SlashCommandBuilder()
   .addStringOption(option =>
     option.setName('name')
       .setDescription('Enemy username')
-      .setRequired(true))
+      .setRequired(true)
+      .setAutocomplete(true))
   .addIntegerOption(option =>
     option.setName('x')
       .setDescription('Colony X')
@@ -61,7 +62,8 @@ const commandkill = new SlashCommandBuilder()
   .addStringOption(option =>
     option.setName('name')
       .setDescription('Enemy username')
-      .setRequired(true))
+      .setRequired(true)
+      .setAutocomplete(true))
   .addIntegerOption(option =>
     option.setName('planet')
       .setDescription('Planet #')
@@ -77,7 +79,8 @@ const commandremove = new SlashCommandBuilder()
   .addStringOption(option =>
     option.setName('name')
       .setDescription('Enemy username')
-      .setRequired(true))
+      .setRequired(true)
+      .setAutocomplete(true))
 
 const commandremovecolony = new SlashCommandBuilder()
   .setName('removecolony')
@@ -85,7 +88,8 @@ const commandremovecolony = new SlashCommandBuilder()
   .addStringOption(option =>
     option.setName('name')
       .setDescription('Enemy username')
-      .setRequired(true))
+      .setRequired(true)
+      .setAutocomplete(true))
   .addIntegerOption(option =>
     option.setName('planet')
       .setDescription('Planet #')
@@ -97,7 +101,8 @@ const enemy = new SlashCommandBuilder()
   .addStringOption(option =>
     option.setName('name')
       .setDescription('Enemy username')
-      .setRequired(true))
+      .setRequired(true)
+      .setAutocomplete(true))
 
 const commands = [{
   name: 'all',
@@ -196,6 +201,17 @@ async function playerembed(name) {
   }
   return embed
 }
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isAutocomplete()) return
+  let focusedValue = interaction.options.getFocused();
+  let choices = Object.keys(await db.getData(`/players`))
+  let filtered = choices.filter(choice => choice.startsWith(focusedValue));
+  await interaction.respond(
+    filtered.map(choice => ({ name: choice, value: choice })),
+  );
+})
+
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return
