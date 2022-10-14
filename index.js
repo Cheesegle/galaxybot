@@ -7,6 +7,8 @@ import {
   SlashCommandBuilder
 } from 'discord.js'
 
+import fs from 'fs'
+
 import {
   JsonDB,
   Config
@@ -104,6 +106,14 @@ const enemy = new SlashCommandBuilder()
       .setRequired(true)
       .setAutocomplete(true))
 
+const nuke = new SlashCommandBuilder()
+  .setName('nuke')
+  .setDescription('Clear all enemies')
+  .addStringOption(option =>
+    option.setName('confirm')
+      .setDescription('Are you sure? (YES)')
+      .setRequired(true))
+
 const commands = [{
   name: 'all',
   description: 'Lists all enemies',
@@ -113,7 +123,8 @@ const commands = [{
   commandkill,
   commandremove,
   commandremovecolony,
-  enemy
+  enemy,
+  nuke
 ]
 
 const rest = new REST({
@@ -355,6 +366,14 @@ client.on('interactionCreate', async interaction => {
       })
     } catch (error) {
       await interaction.reply('Enemy does not exist!')
+    }
+  }
+  if (interaction.commandName === 'nuke') {
+    if (interaction.options.getString('confirm') === 'YES') {
+      fs.copyFile('galaxy.json', `${Date.now()}.json`, (err) => {
+        if (err) throw err;
+      });
+      await interaction.reply('Enemy list cleared! (backup was saved on server side)')
     }
   }
 })
