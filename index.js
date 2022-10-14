@@ -225,11 +225,21 @@ client.on('interactionCreate', async interaction => {
         embeds.push(await playerembed(name))
       }
 
-      interaction.reply({
-        embeds: embeds
-      })
+      let chunkSize = 10;
+      for (let i = 0; i < embeds.length; i += chunkSize) {
+        let chunk = embeds.slice(i, i + chunkSize);
+        if (i < chunkSize) {
+          await interaction.reply({
+            embeds: chunk
+          })
+        } else {
+          await interaction.followUp({
+            embeds: chunk
+          })
+        }
+      }
     } catch (error) {
-      interaction.reply('No enemies!')
+      await interaction.reply('No enemies!')
       return
     }
   }
