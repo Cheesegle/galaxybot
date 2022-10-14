@@ -316,7 +316,7 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'remove') {
     let name = interaction.options.getString('name')
     try {
-      await db.delete(`${name}`)
+      await db.delete(`/players/${name}`)
       await interaction.reply('Removed enemy!')
     } catch (error) {
       await interaction.reply('Enemy does not exist!')
