@@ -266,10 +266,8 @@ client.on('interactionCreate', async interaction => {
     let x = interaction.options.getInteger('x')
     let y = interaction.options.getInteger('y')
     let dead = interaction.options.getBoolean('dead')
-    let sdead = '(ALIVE)'
     let reload = 0
     if (dead === true) {
-      sdead = '(DEAD)'
       reload = Date.now() + regentime
     }
     try {
