@@ -155,7 +155,8 @@ client.on('ready', () => {
             }
             db.push(`/players/${name}`, entry)
             let channel = await client.channels.fetch(channelId)
-            channel.send('<@&' + roleId + '> Planet regenerated!');
+            //<@&' + roleId + '> 
+            channel.send('Planet regenerated!');
             channel.send({
               embeds: [await playerembed(name)]
             });
@@ -204,6 +205,7 @@ async function playerembed(name) {
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isAutocomplete()) return
+  if (interaction.channel.id !== '1015199101194870884') return
   let focusedValue = interaction.options.getFocused();
   let choices = Object.keys(await db.getData(`/players`))
   let filtered = choices.filter(choice => choice.startsWith(focusedValue));
