@@ -370,7 +370,7 @@ client.on('interactionCreate', async interaction => {
   }
   if (interaction.commandName === 'nuke') {
     if (interaction.options.getString('confirm') === 'YES') {
-      fs.copyFile('galaxy.json', `./backups/${Date.now()}.json`, (err) => {
+      fs.copyFile('galaxy.json', `${Date.now()}.json`, (err) => {
         if (err) throw err;
       });
       await db.delete(`/players`)
