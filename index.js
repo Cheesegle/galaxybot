@@ -297,10 +297,6 @@ client.on('interactionCreate', async interaction => {
       let data = await db.getData(`/players/${name}`)
       if (data.planets[planet]) {
         let reload = 0
-        if (dead === true) {
-          dead = '(DEAD)'
-          reload = Date.now() + regentime
-        }
         data.planets[planet] = {
           x: data.planets[planet].x,
           y: data.planets[planet].y,
