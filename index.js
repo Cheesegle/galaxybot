@@ -508,6 +508,4 @@ client.on('interactionCreate', async interaction => {
   }
 })
 
-//1
-
 client.login(TOKEN)
