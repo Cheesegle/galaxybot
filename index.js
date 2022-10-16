@@ -9,6 +9,9 @@ import {
 
 import fs from 'fs';
 
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 import fetch from 'node-fetch';
 
 import { JsonDB, Config } from 'node-json-db';
