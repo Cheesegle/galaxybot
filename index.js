@@ -14,7 +14,10 @@ dotenv.config()
 
 import fetch from 'node-fetch';
 
-import { JsonDB, Config } from 'node-json-db';
+import {
+  JsonDB,
+  Config
+} from 'node-json-db';
 var db = new JsonDB(new Config('galaxy', true, false, '/'));
 
 import prettyMilliseconds from 'pretty-ms';
@@ -32,34 +35,34 @@ const commandcolony = new SlashCommandBuilder()
   .setDescription('Add a colony')
   .addStringOption(option =>
     option
-      .setName('name')
-      .setDescription('Enemy username')
-      .setRequired(true)
-      .setAutocomplete(true)
+    .setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true)
+    .setAutocomplete(true)
   )
   .addIntegerOption(option =>
     option
-      .setName('x')
-      .setDescription('Colony X')
-      .setRequired(true)
+    .setName('x')
+    .setDescription('Colony X')
+    .setRequired(true)
   )
   .addIntegerOption(option =>
     option
-      .setName('y')
-      .setDescription('Colony Y')
-      .setRequired(true)
+    .setName('y')
+    .setDescription('Colony Y')
+    .setRequired(true)
   )
   .addBooleanOption(option =>
     option
-      .setName('dead')
-      .setDescription('Colony dead')
-      .setRequired(true)
+    .setName('dead')
+    .setDescription('Colony dead')
+    .setRequired(true)
   )
   .addStringOption(option =>
     option
-      .setName('note')
-      .setDescription('Note')
-      .setRequired(false)
+    .setName('note')
+    .setDescription('Note')
+    .setRequired(false)
   );
 
 const commandkill = new SlashCommandBuilder()
@@ -67,22 +70,22 @@ const commandkill = new SlashCommandBuilder()
   .setDescription('Mark planet as killed')
   .addStringOption(option =>
     option
-      .setName('name')
-      .setDescription('Enemy username')
-      .setRequired(true)
-      .setAutocomplete(true)
+    .setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true)
+    .setAutocomplete(true)
   )
   .addIntegerOption(option =>
     option
-      .setName('planet')
-      .setDescription('Planet #')
-      .setRequired(true)
+    .setName('planet')
+    .setDescription('Planet #')
+    .setRequired(true)
   )
   .addBooleanOption(option =>
     option
-      .setName('dead')
-      .setDescription('Planet dead state')
-      .setRequired(true)
+    .setName('dead')
+    .setDescription('Planet dead state')
+    .setRequired(true)
   );
 
 const commandremovecolony = new SlashCommandBuilder()
@@ -90,16 +93,16 @@ const commandremovecolony = new SlashCommandBuilder()
   .setDescription('Remove colony')
   .addStringOption(option =>
     option
-      .setName('name')
-      .setDescription('Enemy username')
-      .setRequired(true)
-      .setAutocomplete(true)
+    .setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true)
+    .setAutocomplete(true)
   )
   .addIntegerOption(option =>
     option
-      .setName('planet')
-      .setDescription('Planet #')
-      .setRequired(true)
+    .setName('planet')
+    .setDescription('Planet #')
+    .setRequired(true)
   );
 
 const enemy = new SlashCommandBuilder()
@@ -107,10 +110,10 @@ const enemy = new SlashCommandBuilder()
   .setDescription('List single enemy')
   .addStringOption(option =>
     option
-      .setName('name')
-      .setDescription('Enemy username')
-      .setRequired(true)
-      .setAutocomplete(true)
+    .setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true)
+    .setAutocomplete(true)
   );
 
 const nuke = new SlashCommandBuilder()
@@ -118,9 +121,9 @@ const nuke = new SlashCommandBuilder()
   .setDescription('Clear all enemies')
   .addStringOption(option =>
     option
-      .setName('confirm')
-      .setDescription('Are you sure? (YES)')
-      .setRequired(true)
+    .setName('confirm')
+    .setDescription('Are you sure? (YES)')
+    .setRequired(true)
   );
 
 const commandautofill = new SlashCommandBuilder()
@@ -128,9 +131,9 @@ const commandautofill = new SlashCommandBuilder()
   .setDescription('Auto fill clan users')
   .addStringOption(option =>
     option
-      .setName('name')
-      .setDescription('Clan username')
-      .setRequired(true)
+    .setName('name')
+    .setDescription('Clan username')
+    .setRequired(true)
   );
 
 const commandnote = new SlashCommandBuilder()
@@ -138,30 +141,28 @@ const commandnote = new SlashCommandBuilder()
   .setDescription('Add/edit planet note')
   .addStringOption(option =>
     option
-      .setName('name')
-      .setDescription('Enemy username')
-      .setRequired(true)
-      .setAutocomplete(true)
+    .setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true)
+    .setAutocomplete(true)
   )
   .addIntegerOption(option =>
     option
-      .setName('planet')
-      .setDescription('Planet #')
-      .setRequired(true)
+    .setName('planet')
+    .setDescription('Planet #')
+    .setRequired(true)
   )
   .addStringOption(option =>
     option
-      .setName('note')
-      .setDescription('Note')
-      .setRequired(true)
+    .setName('note')
+    .setDescription('Note')
+    .setRequired(true)
   );
 
-const commands = [
-  {
+const commands = [{
     name: 'all',
     description: 'Lists all enemies'
-  },
-  {
+  }, {
     name: 'attackable',
     description: 'Lists all attackable enemies'
   },
@@ -212,48 +213,46 @@ client.on('ready', () => {
       for (let name in data) {
         let pingattackable = 0;
         let entry = data[name];
-        let memberResponse = await fetch(
-          `https://api.galaxylifegame.net/users/name?name=${name}`
-        );
+        let memberResponse = await fetch(`https://api.galaxylifegame.net/users/name?name=${name}`);
         let memberData = await memberResponse.json();
         entry.online = memberData.Online;
-        db.push(`/players/${name}`, entry);
         for (let [index, planet] of entry.planets.entries()) {
           if (entry.online === true) {
             entry.planets[index].dead = false;
             entry.planets[index].reload = -1;
-            db.push(`/players/${name}`, entry);
           }
           if (entry.online === false && planet.reload === -1) {
             entry.planets[index].dead = false;
             entry.planets[index].reload = 0;
-            db.push(`/players/${name}`, entry);
             pingattackable += 1;
           }
           if (planet.reload <= Date.now() && planet.reload > 0) {
             entry.planets[index].dead = false;
             entry.planets[index].reload = 0;
-            db.push(`/players/${name}`, entry);
             pingattackable += 1;
           }
         }
-        if (pingattackable === 1) {
-          let channel = await client.channels.fetch(channelId);
-          //<@&' + roleId + '>
-          channel.send('Planet attackable!');
-          channel.send({
-            embeds: [await playerembed(name)]
-          });
-        } else if (pingattackable > 1) {
-          let channel = await client.channels.fetch(channelId);
-          //<@&' + roleId + '>
-          channel.send('Planets attackable!');
-          channel.send({
-            embeds: [await playerembed(name)]
-          });
-        }
+        try {
+          await db.getData(`/players`)
+          db.push(`/players/${name}`, entry)
+          if (pingattackable === 1) {
+            let channel = await client.channels.fetch(channelId);
+            //<@&' + roleId + '>
+            channel.send('Planet attackable!');
+            channel.send({
+              embeds: [await playerembed(name)]
+            });
+          } else if (pingattackable > 1) {
+            let channel = await client.channels.fetch(channelId);
+            //<@&' + roleId + '>
+            channel.send('Planets attackable!');
+            channel.send({
+              embeds: [await playerembed(name)]
+            });
+          }
+        } catch (error) {}
       }
-    } catch (error) { }
+    } catch (error) {}
   }, 1000);
 });
 
@@ -433,7 +432,7 @@ client.on('interactionCreate', async interaction => {
   }
   if (interaction.commandName === 'nuke') {
     if (interaction.options.getString('confirm') === 'YES') {
-      fs.copyFile('galaxy.json', `${Date.now()}.json`, err => {
+      await fs.copyFile('galaxy.json', `${Date.now()}.json`, err => {
         if (err) throw err;
       });
       await db.delete(`/players`);
@@ -443,10 +442,9 @@ client.on('interactionCreate', async interaction => {
     }
   }
   if (interaction.commandName === 'autofill') {
+    let name = interaction.options.getString('name');
     try {
-      let clanResponse = await fetch(
-        `https://api.galaxylifegame.net/alliances/get?name=${'furry femboy club'}`
-      );
+      let clanResponse = await fetch(`https://api.galaxylifegame.net/alliances/get?name=${name}`);
       let clanData = await clanResponse.json();
       await interaction.reply('Adding members...');
       for (let member of clanData.Members) {
@@ -456,12 +454,10 @@ client.on('interactionCreate', async interaction => {
         let memberData = await memberResponse.json();
         db.push(`/players/${member.Name}`, {
           online: memberData.Online,
-          planets: [
-            {
-              dead: false,
-              reload: 0
-            }
-          ]
+          planets: [{
+            dead: false,
+            reload: 0
+          }]
         });
       }
       let data = await db.getData(`/players`);
