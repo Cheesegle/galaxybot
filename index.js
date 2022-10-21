@@ -117,6 +117,17 @@ const commandremovecolony = new SlashCommandBuilder()
     .setRequired(true)
   );
 
+const commandremove = new SlashCommandBuilder()
+  .setName('remove')
+  .setDescription('Remove enemy')
+  .addStringOption(option =>
+    option
+    .setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true)
+    .setAutocomplete(true)
+  );
+
 const enemy = new SlashCommandBuilder()
   .setName('enemy')
   .setDescription('List single enemy')
@@ -185,7 +196,8 @@ const commands = [{
   nuke,
   commandautofill,
   commandnote,
-  commandadd
+  commandadd,
+  commandremove
 ];
 
 const rest = new REST({
@@ -362,25 +374,25 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'add') {
     let name = interaction.options.getString('name')
     let dead = interaction.options.getBoolean('dead')
-        try {
-    let memberResponse = await fetch(
-      `https://api.galaxylifegame.net/users/name?name=${name}`
-    );
-    let memberData = await memberResponse.json();
-    db.push(`/players/${name}`, {
-      online: memberData.Online,
-      planets: [{
-        dead: false,
-        reload: 0
-      }]
-    });
-     await interaction.reply('Enemy added!');
-     await interaction.followUp({
+    try {
+      let memberResponse = await fetch(
+        `https://api.galaxylifegame.net/users/name?name=${name}`
+      );
+      let memberData = await memberResponse.json();
+      db.push(`/players/${name}`, {
+        online: memberData.Online,
+        planets: [{
+          dead: false,
+          reload: 0
+        }]
+      });
+      await interaction.reply('Enemy added!');
+      await interaction.followUp({
         embeds: [await playerembed(name)]
       });
-   } catch(error) {
-    await interaction.reply('Enemy not found!');
-   }
+    } catch (error) {
+      await interaction.reply('Enemy not found!');
+    }
   }
   if (interaction.commandName === 'colony') {
     let name = interaction.options.getString('name');
@@ -457,6 +469,14 @@ client.on('interactionCreate', async interaction => {
       }
     } else {
       await interaction.reply('Cannot remove main planet!');
+    }
+  }
+  if (interaction.commandName === 'remove') {
+    try {
+      let name = interaction.options.getString('name');
+      await db.delete(`/players/${name}`);
+    } catch (error) {
+      await interaction.reply('Enemy not found!');
     }
   }
   if (interaction.commandName === 'enemy') {
