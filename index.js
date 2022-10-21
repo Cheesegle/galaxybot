@@ -362,6 +362,7 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'add') {
     let name = interaction.options.getString('name')
     let dead = interaction.options.getBoolean('dead')
+        try {
     let memberResponse = await fetch(
       `https://api.galaxylifegame.net/users/name?name=${name}`
     );
@@ -373,6 +374,13 @@ client.on('interactionCreate', async interaction => {
         reload: 0
       }]
     });
+     await interaction.reply('Enemy added!');
+     await interaction.followUp({
+        embeds: [await playerembed(name)]
+      });
+   } catch(error) {
+    await interaction.reply('Enemy not found!');
+   }
   }
   if (interaction.commandName === 'colony') {
     let name = interaction.options.getString('name');
