@@ -30,6 +30,18 @@ let regentime = 1.44e7;
 
 //(4 hours) 1.44e+7
 
+const commandadd = new SlashCommandBuilder()
+  .setName('add')
+  .setDescription('Add an enemy')
+  .addStringOption(option =>
+    option.setName('name')
+    .setDescription('Enemy username')
+    .setRequired(true))
+  .addBooleanOption(option =>
+    option.setName('dead')
+    .setDescription('Main planet dead')
+    .setRequired(true))
+
 const commandcolony = new SlashCommandBuilder()
   .setName('colony')
   .setDescription('Add a colony')
@@ -253,7 +265,7 @@ client.on('ready', () => {
         } catch (error) {}
       }
     } catch (error) {}
-  }, 1000);
+  }, 60000);
 });
 
 async function playerembed(name) {
@@ -298,19 +310,22 @@ async function playerembed(name) {
 }
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isAutocomplete()) return;
-  if (interaction.channel.id !== '1015199101194870884') return;
-  let focusedValue = interaction.options.getFocused().toLowerCase();
-  let choices = Object.keys(await db.getData(`/players`));
-  let filtered = choices.filter(choice =>
-    choice.toLowerCase().startsWith(focusedValue)
-  );
-  await interaction.respond(
-    filtered.map(choice => ({
-      name: choice,
-      value: choice
-    }))
-  );
+  try {
+
+    if (!interaction.isAutocomplete()) return;
+    if (interaction.channel.id !== '1015199101194870884') return;
+    let focusedValue = interaction.options.getFocused().toLowerCase();
+    let choices = Object.keys(await db.getData(`/players`));
+    let filtered = choices.filter(choice =>
+      choice.toLowerCase().startsWith(focusedValue)
+    );
+    await interaction.respond(
+      filtered.map(choice => ({
+        name: choice,
+        value: choice
+      }))
+    );
+  } catch (error) {}
 });
 
 client.on('interactionCreate', async interaction => {
@@ -342,6 +357,21 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply('No enemies!');
       return;
     }
+  }
+  if (interaction.commandName === 'add') {
+    let name = interaction.options.getString('name')
+    let dead = interaction.options.getBoolean('dead')
+    let memberResponse = await fetch(
+      `https://api.galaxylifegame.net/users/name?name=${name}`
+    );
+    let memberData = await memberResponse.json();
+    db.push(`/players/${name}`, {
+      online: memberData.Online,
+      planets: [{
+        dead: false,
+        reload: 0
+      }]
+    });
   }
   if (interaction.commandName === 'colony') {
     let name = interaction.options.getString('name');
