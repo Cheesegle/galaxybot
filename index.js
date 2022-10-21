@@ -475,6 +475,7 @@ client.on('interactionCreate', async interaction => {
     try {
       let name = interaction.options.getString('name');
       await db.delete(`/players/${name}`);
+      await interaction.reply('Enemy removed!');
     } catch (error) {
       await interaction.reply('Enemy not found!');
     }
