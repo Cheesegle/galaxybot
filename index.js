@@ -184,7 +184,8 @@ const commands = [{
   enemy,
   nuke,
   commandautofill,
-  commandnote
+  commandnote,
+  commandadd
 ];
 
 const rest = new REST({
