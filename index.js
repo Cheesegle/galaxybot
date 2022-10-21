@@ -303,12 +303,14 @@ async function playerembed(name) {
     if (index === 0) {
       embed.addFields({
         name: `Main #0`,
-        value: `${sdead}${snote}`
+        value: `${sdead}${snote}`,
+        inline: true
       });
     } else {
       embed.addFields({
         name: `Colony #${index}`,
-        value: `${planet.x}, ${planet.y} ${sdead}${snote}`
+        value: `${planet.x}, ${planet.y} ${sdead}${snote}`,
+        inline: true
       });
     }
   }
