@@ -15,9 +15,10 @@ import {
   TextInputStyle,
 } from 'discord.js';
 
+import qs from 'querystring';
 import fs from 'fs';
 
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 dotenv.config()
 
 import fetch from 'node-fetch';
@@ -27,6 +28,7 @@ import {
   Config
 } from 'node-json-db';
 var db = new JsonDB(new Config('galaxy', true, false, '/'));
+var dbc = new JsonDB(new Config('universe', true, false, '/'));
 
 import prettyMilliseconds from 'pretty-ms';
 
@@ -167,6 +169,16 @@ const commandautofill = new SlashCommandBuilder()
     .setRequired(true)
   );
 
+const commandfetchcoords = new SlashCommandBuilder()
+  .setName('fetchcoords')
+  .setDescription('Auto fill clan users')
+  .addStringOption(option =>
+    option
+    .setName('name')
+    .setDescription('Clan username')
+    .setRequired(true)
+  );
+
 const commandnote = new SlashCommandBuilder()
   .setName('note')
   .setDescription('Add/edit planet note')
@@ -197,8 +209,7 @@ const commands = [{
   }, {
     name: 'attackable',
     description: 'Lists all attackable enemies'
-  },
-  {
+  }, {
     name: 'test',
     description: 'uwu'
   },
@@ -210,7 +221,8 @@ const commands = [{
   commandautofill,
   commandnote,
   commandadd,
-  commandremove
+  commandremove,
+  commandfetchcoords,
 ];
 
 const rest = new REST({
@@ -294,8 +306,30 @@ client.on('ready', () => {
   }, 60000);
 });
 
-async function playerembed(name) {
-  let entry = await db.getData(`/players/${name}`);
+function stringstuff(input) {
+  var i = 0;
+  var letter = 0;
+  var lowBits = 0;
+  var output = new String();
+  for (i = 0; i < input.length;) {
+    letter = input.charCodeAt(i);
+    if (letter >= 32 && letter < 128) {
+      lowBits = (letter ^ i + 3) & 31;
+      letter = letter & 4294967264 | lowBits;
+    }
+    output += String.fromCharCode(letter);
+    i++;
+  }
+  return output;
+}
+
+async function playerembed(name, c) {
+  let entry;
+  if (c) {
+    entry = await dbc.getData(`/players/${name}`);
+  } else {
+    entry = await db.getData(`/players/${name}`);
+  }
   let sonline = '(OFFLINE)';
   if (entry.online === true) {
     sonline = `(ONLINE)`;
@@ -357,7 +391,7 @@ client.on('interactionCreate', async interaction => {
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
-  if (interaction.channel.id !== '1015199101194870884') return;
+  if (interaction.channel.id !== '1015199101194870884' && interaction.channel.id !== '1040972677155926036') return;
 
   if (interaction.commandName === 'all') {
     try {
@@ -652,6 +686,119 @@ client.on('interactionCreate', async interaction => {
 
     // Show the modal to the user
     await interaction.showModal(modal);
+  }
+  if (interaction.commandName === 'fetchcoords' && interaction.user.id === '469520953999753216') {
+    let reqObject = {
+      uid: '233701',
+      sig: '6459a5845e08fe2371c49d7aa801c160',
+      data: '',
+      platform: 'phoenix',
+      version: '1.1.20',
+      flash_version: 'WIN 34,0,0,267',
+      site: ''
+    }
+
+    let name = interaction.options.getString('name');
+    try {
+      let clanResponse = await fetch(`https://api.galaxylifegame.net/alliances/get?name=${name}`);
+      let clanData = await clanResponse.json();
+      await interaction.reply('Adding members...');
+      for (let member of clanData.Members) {
+        let memberResponse = await fetch(
+          `https://api.galaxylifegame.net/users/name?name=${member.Name}`
+        );
+        let dataObject = {
+          "packetData": {
+            "cmdList": [{
+              "cmdMls": 116171,
+              "cmdCount": 36,
+              "cmdName": "obtainUniverse",
+              "cmdData": {
+                "attack": "0",
+                "planetId": "1",
+                "targetAccountId": member.Id
+              }
+            }],
+            "packetCount": 21,
+            "role": 2,
+            "sync": 6,
+            "packetMls": 116199,
+            "version": "1.22.1"
+          },
+          "packetType": "cmdList"
+        }
+        reqObject.data = stringstuff(JSON.stringify(dataObject))
+        let coordsResponse = await fetch("https://lb.galaxylifeserver.net/star/game", {
+          "headers": {
+            "accept": "*/*",
+            "accept-language": "en-US,en;q=0.9",
+            "authorization": "Bearer no_use_rn",
+            "content-type": "application/x-www-form-urlencoded",
+            "sec-fetch-dest": "embed",
+            "sec-fetch-mode": "no-cors",
+            "sec-fetch-site": "cross-site",
+            "x-requested-with": "ShockwaveFlash/34.0.0.267"
+          },
+          "referrer": "https://cdn.galaxylifegame.net/",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "body": qs.stringify(reqObject),
+          "method": "POST",
+          "mode": "cors"
+        });
+        let coordsServerData = await coordsResponse.json()
+        let coordsData = JSON.parse(stringstuff(coordsServerData.data)).list[0].cmdData.Universe[0].Profile[5].Planets;
+        let memberData = await memberResponse.json();
+        dbc.push(`/players/${member.Name}`, {
+          online: memberData.Online,
+          planets: [{
+            dead: false,
+            reload: 0
+          }]
+        });
+        let entry = await dbc.getData(`/players/${member.Name}`);
+        for (let i = 0; i < coordsData.length; i++) {
+          if (coordsData[i].capital !== 1) {
+            entry.planets.push({
+              dead: false,
+              x: coordsData[i].sku.split(':')[0],
+              y: coordsData[i].sku.split(':')[1],
+              reload: 0,
+              note: `sb${coordsData[i].HQLevel}`
+            })
+          }
+        }
+        dbc.push(`/players/${name}`, entry)
+      }
+      let data = await dbc.getData(`/players`);
+      let embeds = [];
+      for (let name in data) {
+        embeds.push(await playerembed(name, true));
+      }
+
+      await interaction.followUp('Clan members added!');
+
+      let chunkSize = 10;
+      for (let i = 0; i < embeds.length; i += chunkSize) {
+        let chunk = embeds.slice(i, i + chunkSize);
+        if (i < chunkSize) {
+          await interaction.followUp({
+            embeds: chunk
+          });
+        } else {
+          await interaction.followUp({
+            embeds: chunk
+          });
+        }
+      }
+      await fs.copyFile('universe.json', `${name} all coords ${Date.now()}.json`, err => {
+        if (err) throw err;
+      });
+      await dbc.delete(`/players`);
+    } catch (error) {
+      await interaction.reply('Unable to fetch clan!');
+    }
+
+
   }
 });
 
